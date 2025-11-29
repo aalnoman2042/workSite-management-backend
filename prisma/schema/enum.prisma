@@ -1,0 +1,41 @@
+enum UserRole {
+  ADMIN
+  CHIEF_ENGINEER
+  SITE_ENGINEER
+  WORKER
+}
+
+
+
+enum AssignmentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
+enum SiteStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+  CLOSED
+}
+enum PaymentStatus {
+  DUE
+  PAID
+  PENDING
+  FAILED
+}
+enum WorkerPosition {
+  SENIOR_TECHNICIAN
+  JUNIOR_TECHNICIAN
+  SENIOR_HELPER
+  JUNIOR_HELPER
+  ELECTRICIAN
+  PLUMBER
+  CARPENTER
+  OTHER
+}

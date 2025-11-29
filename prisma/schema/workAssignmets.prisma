@@ -1,0 +1,34 @@
+model Site {
+  id        String   @id @default(uuid())
+  name      String
+  location  String?
+  address   String
+  status    SiteStatus  @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  assignments WorkAssignment[]
+}
+
+model WorkAssignment {
+  id        String     @id @default(uuid())
+  title       String
+  description String
+  status      AssignmentStatus 
+  assignedAt  DateTime   @default(now())
+  dueDate     DateTime?
+
+  site        Site       @relation(fields: [siteId], references: [id])
+  siteId      String
+
+  worker      Worker     @relation(fields: [workerId], references: [id])
+  workerId    String
+
+  engineer    SITE_Engineer   @relation(fields: [engineerId], references: [id])
+  engineerId  String
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+

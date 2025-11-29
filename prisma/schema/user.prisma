@@ -1,0 +1,84 @@
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  role             UserRole         @default(WORKER)
+  isBanned         Boolean          @default(false)
+  gender           Gender?
+ 
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  admin           Admin?
+  chiefEngineer  CHIEF_ENGINEER?
+  engineer        SITE_Engineer?
+  worker          Worker?
+
+  attendance       Attendance[]
+   
+  
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  profilePhoto  String?
+  isDeleted     Boolean  @default(false)
+     contactNumber String
+  email     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  
+}
+model SITE_Engineer {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  profilePhoto  String?
+  isDeleted     Boolean  @default(false)
+     contactNumber String
+  user      User     @relation(fields: [email], references: [email])
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workAssignments  WorkAssignment[]
+  payments         WorkerPayment[]
+  salaryRecords    SiteEngineerSalary[]
+}
+
+model Worker {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  profilePhoto  String?
+  isDeleted     Boolean  @default(false)
+     contactNumber String
+  user      User     @relation(fields: [email], references: [email])
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  dailyRate        Float?
+  halfDayRate      Float?
+  position         WorkerPosition?
+
+  workAssignments  WorkAssignment[]
+  payments         WorkerPayment[]
+}
+
+model CHIEF_ENGINEER {
+  id        String   @id @default(uuid())
+  name      String
+  profilePhoto  String?
+  isDeleted     Boolean  @default(false)
+     contactNumber String
+  user      User     @relation(fields: [email], references: [email])
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  salaryRecords    ChiefEngineerSalary[]
+}

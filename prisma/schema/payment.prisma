@@ -1,0 +1,49 @@
+model WorkerPayment {
+  id  String @id @default(uuid())
+  
+  // Payment is tied to a specific worker
+  worker  Worker @relation(fields: [workerId], references: [id])
+  workerId  String
+
+  
+  // Simplified for weekly payment:
+  startDate DateTime // Start of the payment week
+  endDate DateTime // End of the payment week
+  
+  totalAmountDue Float // Calculated amount
+  amountPaid Float  @default(0)
+  
+  status PaymentStatus @default(DUE) // DUE, PAID, PENDING
+  
+  paidBy SITE_Engineer @relation(fields: [paidByEngineerId], references: [id])
+  paidByEngineerId String
+  paymentDate  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model SiteEngineerSalary {
+  id             String    @id @default(uuid())
+  engineer       SITE_Engineer  @relation(fields: [engineerId], references: [id])
+  engineerId     String
+
+  salary         Float
+  salaryMonth    String
+  paymentDate    DateTime @default(now())
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ChiefEngineerSalary {
+  id               String         @id @default(uuid())
+  chiefEngineer    CHIEF_ENGINEER @relation(fields: [chiefEngineerId], references: [id])
+  chiefEngineerId  String
+
+  salary           Float
+  salaryMonth      String
+  paymentDate      DateTime @default(now())
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
