@@ -2,6 +2,8 @@ import express from 'express';
 import { UserRoutes } from '../modules/user/user.routes';
 import { authRoutes } from '../modules/auth/auth.routes';
 import { adminRoutes } from '../modules/Admin/admin.routes';
+import { SiteRoutes } from '../modules/construction site/site.route';
+import { WorkAssignmentRoutes } from '../modules/workAssignment/workAssignment.routes';
 
 
 
@@ -23,6 +25,14 @@ const moduleRoutes = [
         path: '/admin',
             route: adminRoutes   
     },
+    {
+        path: '/site',
+        route: SiteRoutes
+    },
+    {
+        path: '/work-assignment',
+        route: WorkAssignmentRoutes
+    }
    
 ];
 

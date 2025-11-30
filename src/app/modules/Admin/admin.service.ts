@@ -14,7 +14,7 @@ const approveUser = async (userId: string) => {
 
   // Already approved?
   if (user.approved) {
-    return { success: false, message: "User already approved" };
+    return  { message: "User already approved" };
   }
 
   // Approve user
