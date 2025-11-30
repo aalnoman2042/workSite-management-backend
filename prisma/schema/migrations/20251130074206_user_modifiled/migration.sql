@@ -1,0 +1,328 @@
+/*
+  Warnings:
+
+  - You are about to drop the `Admin` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `Attendance` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `CHIEF_ENGINEER` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `ChiefEngineerSalary` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `SITE_Engineer` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `Site` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `SiteEngineerSalary` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `WorkAssignment` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `Worker` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `WorkerPayment` table. If the table is not empty, all the data it contains will be lost.
+
+*/
+-- DropForeignKey
+ALTER TABLE "Admin" DROP CONSTRAINT "Admin_userId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "Attendance" DROP CONSTRAINT "Attendance_userId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "CHIEF_ENGINEER" DROP CONSTRAINT "CHIEF_ENGINEER_email_fkey";
+
+-- DropForeignKey
+ALTER TABLE "ChiefEngineerSalary" DROP CONSTRAINT "ChiefEngineerSalary_chiefEngineerId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "SITE_Engineer" DROP CONSTRAINT "SITE_Engineer_email_fkey";
+
+-- DropForeignKey
+ALTER TABLE "SiteEngineerSalary" DROP CONSTRAINT "SiteEngineerSalary_engineerId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "WorkAssignment" DROP CONSTRAINT "WorkAssignment_assignedByEngineerId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "WorkAssignment" DROP CONSTRAINT "WorkAssignment_siteId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "WorkAssignment" DROP CONSTRAINT "WorkAssignment_workerId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "Worker" DROP CONSTRAINT "Worker_email_fkey";
+
+-- DropForeignKey
+ALTER TABLE "WorkerPayment" DROP CONSTRAINT "WorkerPayment_paidByEngineerId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "WorkerPayment" DROP CONSTRAINT "WorkerPayment_workerId_fkey";
+
+-- DropTable
+DROP TABLE "Admin";
+
+-- DropTable
+DROP TABLE "Attendance";
+
+-- DropTable
+DROP TABLE "CHIEF_ENGINEER";
+
+-- DropTable
+DROP TABLE "ChiefEngineerSalary";
+
+-- DropTable
+DROP TABLE "SITE_Engineer";
+
+-- DropTable
+DROP TABLE "Site";
+
+-- DropTable
+DROP TABLE "SiteEngineerSalary";
+
+-- DropTable
+DROP TABLE "User";
+
+-- DropTable
+DROP TABLE "WorkAssignment";
+
+-- DropTable
+DROP TABLE "Worker";
+
+-- DropTable
+DROP TABLE "WorkerPayment";
+
+-- CreateTable
+CREATE TABLE "Attendances" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "hoursWorked" DOUBLE PRECISION,
+    "isHalfDay" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Attendances_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WorkerPayments" (
+    "id" TEXT NOT NULL,
+    "workerId" TEXT NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "totalAmountDue" DOUBLE PRECISION NOT NULL,
+    "amountPaid" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "status" "PaymentStatus" NOT NULL DEFAULT 'DUE',
+    "paidByEngineerId" TEXT NOT NULL,
+    "paymentDate" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WorkerPayments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SiteEngineerSalaries" (
+    "id" TEXT NOT NULL,
+    "engineerId" TEXT NOT NULL,
+    "salary" DOUBLE PRECISION NOT NULL,
+    "salaryMonth" TEXT NOT NULL,
+    "paymentDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SiteEngineerSalaries_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChiefEngineerSalaries" (
+    "id" TEXT NOT NULL,
+    "chiefEngineerId" TEXT NOT NULL,
+    "salary" DOUBLE PRECISION NOT NULL,
+    "salaryMonth" TEXT NOT NULL,
+    "paymentDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ChiefEngineerSalaries_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Users" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" "UserRole" NOT NULL DEFAULT 'WORKER',
+    "isBanned" BOOLEAN NOT NULL DEFAULT false,
+    "gender" "Gender",
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Admins" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "contactNumber" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "companyName" TEXT,
+
+    CONSTRAINT "Admins_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SiteEngineers" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "contactNumber" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "companyName" TEXT,
+
+    CONSTRAINT "SiteEngineers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Workers" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "contactNumber" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "nidNumber" TEXT NOT NULL,
+    "joiningDate" TIMESTAMP(3) NOT NULL,
+    "banned" BOOLEAN NOT NULL DEFAULT false,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "onleave" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "dailyRate" DOUBLE PRECISION,
+    "halfDayRate" DOUBLE PRECISION,
+    "companyName" TEXT,
+    "position" "WorkerPosition",
+
+    CONSTRAINT "Workers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChiefEngineers" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "contactNumber" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "companyName" TEXT,
+
+    CONSTRAINT "ChiefEngineers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Sites" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "location" TEXT,
+    "address" TEXT NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
+    "totalCost" DOUBLE PRECISION,
+    "status" "SiteStatus" NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Sites_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WorkAssignments" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" "AssignmentStatus" NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dueDate" TIMESTAMP(3),
+    "siteId" TEXT NOT NULL,
+    "workerId" TEXT NOT NULL,
+    "workdate" TIMESTAMP(3),
+    "assignedByEngineerId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WorkAssignments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Admins_email_key" ON "Admins"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Admins_userId_key" ON "Admins"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteEngineers_email_key" ON "SiteEngineers"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SiteEngineers_userId_key" ON "SiteEngineers"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Workers_email_key" ON "Workers"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Workers_userId_key" ON "Workers"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Workers_nidNumber_key" ON "Workers"("nidNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChiefEngineers_email_key" ON "ChiefEngineers"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChiefEngineers_userId_key" ON "ChiefEngineers"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkerPayments" ADD CONSTRAINT "WorkerPayments_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Workers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkerPayments" ADD CONSTRAINT "WorkerPayments_paidByEngineerId_fkey" FOREIGN KEY ("paidByEngineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SiteEngineerSalaries" ADD CONSTRAINT "SiteEngineerSalaries_engineerId_fkey" FOREIGN KEY ("engineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChiefEngineerSalaries" ADD CONSTRAINT "ChiefEngineerSalaries_chiefEngineerId_fkey" FOREIGN KEY ("chiefEngineerId") REFERENCES "ChiefEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Admins" ADD CONSTRAINT "Admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SiteEngineers" ADD CONSTRAINT "SiteEngineers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Workers" ADD CONSTRAINT "Workers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChiefEngineers" ADD CONSTRAINT "ChiefEngineers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Workers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_assignedByEngineerId_fkey" FOREIGN KEY ("assignedByEngineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

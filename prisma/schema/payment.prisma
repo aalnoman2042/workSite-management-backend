@@ -21,6 +21,8 @@ model WorkerPayment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("WorkerPayments")
 }
 model SiteEngineerSalary {
   id             String    @id @default(uuid())
@@ -33,6 +35,9 @@ model SiteEngineerSalary {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+
+  @@map("SiteEngineerSalaries")
 }
 
 model ChiefEngineerSalary {
@@ -46,4 +51,6 @@ model ChiefEngineerSalary {
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@map("ChiefEngineerSalaries")
 }

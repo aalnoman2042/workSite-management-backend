@@ -3,11 +3,16 @@ model Site {
   name      String
   location  String?
   address   String
+  startDate DateTime
+  endDate   DateTime?
+  totalCost   Float?
   status    SiteStatus  @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   assignments WorkAssignment[]
+
+  @@map("Sites")
 }
 
 model WorkAssignment {
@@ -24,11 +29,15 @@ model WorkAssignment {
   worker      Worker     @relation(fields: [workerId], references: [id])
   workerId    String
 
-  engineer    SITE_Engineer   @relation(fields: [engineerId], references: [id])
-  engineerId  String
+
+  workdate   DateTime?
+  assignedBy   SITE_Engineer   @relation(fields: [assignedByEngineerId], references: [id])
+  assignedByEngineerId String
 
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@map("WorkAssignments")
 }
 
 

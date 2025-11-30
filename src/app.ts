@@ -5,6 +5,8 @@ import notFound from './app/middlewares/notFound';
 import config from './config';
 import { uptime } from 'process';
 import { timeStamp } from 'console';
+import router from './app/routes';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 app.use(cors({
@@ -28,7 +30,7 @@ app.get('/', (req: Request, res: Response) => {
 
 
 app.use(globalErrorHandler);
-
-app.use(notFound);
+app.use(cookieParser())
+app.use("/api/v1", router)
 
 export default app;

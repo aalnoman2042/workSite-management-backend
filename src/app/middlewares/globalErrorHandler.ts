@@ -1,18 +1,43 @@
-import { NextFunction, Request, Response } from "express"
-import httpStatus from "http-status"
+import { Prisma } from "@prisma/client";
+import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
 
-const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+const globalErrorHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let statusCode : number =err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+  let success = false;
+  let message = err.message || "Something went wrong!";
+  let error = err;
 
-    let statusCode = httpStatus.INTERNAL_SERVER_ERROR;
-    let success = false;
-    let message = err.message || "Something went wrong!";
-    let error = err;
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2002") {
+      (message = "Duplicate key error"), (err = err.meta), (statusCode = httpStatus.CONFLICT);
+    }
+    if (err.code === "P1000") {
+      (message = "Authentication failed"), (err = err.meta), (statusCode = httpStatus.BAD_GATEWAY);
+    }
+    if (err.code === "P2003") {
+      (message = "foreign key constraint failed"), (err = err.meta) , (statusCode = httpStatus.BAD_REQUEST);
+    }
+  } else if (err instanceof Prisma.PrismaClientValidationError) {
+    message = "validation error";
+    error = err.message;
+    statusCode = httpStatus.BAD_REQUEST
+  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+    message = "unknown prisma error occured";
+    error = err.message;
+    statusCode = httpStatus.BAD_REQUEST
+  }
 
-    res.status(statusCode).json({
-        success,
-        message,
-        error
-    })
+  res.status(statusCode).json({
+    success,
+    message,
+    error,
+  });
 };
 
 export default globalErrorHandler;

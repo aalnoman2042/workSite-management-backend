@@ -5,6 +5,8 @@ model User {
   role             UserRole         @default(WORKER)
   isBanned         Boolean          @default(false)
   gender           Gender?
+  approved         Boolean          @default(false)
+  profilePhoto     String?
  
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -16,7 +18,7 @@ model User {
 
   attendance       Attendance[]
    
-  
+  @@map("Users")
 }
 
 model Admin {
@@ -30,8 +32,9 @@ model Admin {
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  companyName  String?
 
-  
+  @@map("Admins")
 }
 model SITE_Engineer {
   id        String   @id @default(uuid())
@@ -39,6 +42,7 @@ model SITE_Engineer {
   name      String
   profilePhoto  String?
   isDeleted     Boolean  @default(false)
+  approved     Boolean  @default(false)
      contactNumber String
   user      User     @relation(fields: [email], references: [email])
   userId    String   @unique
@@ -48,6 +52,9 @@ model SITE_Engineer {
   workAssignments  WorkAssignment[]
   payments         WorkerPayment[]
   salaryRecords    SiteEngineerSalary[]
+  companyName      String?
+
+  @@map("SiteEngineers")
 }
 
 model Worker {
@@ -59,26 +66,38 @@ model Worker {
      contactNumber String
   user      User     @relation(fields: [email], references: [email])
   userId    String   @unique
+  nidNumber  String   @unique
+  joiningDate DateTime?
+  banned    Boolean  @default(false)
+  approved     Boolean  @default(false)
+  onleave   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   dailyRate        Float?
   halfDayRate      Float?
+  companyName      String?
   position         WorkerPosition?
 
   workAssignments  WorkAssignment[]
   payments         WorkerPayment[]
+
+  @@map("Workers")
 }
 
 model CHIEF_ENGINEER {
-  id        String   @id @default(uuid())
-  name      String
+  id            String   @id @default(uuid())
+  name          String
   profilePhoto  String?
   isDeleted     Boolean  @default(false)
-     contactNumber String
-  user      User     @relation(fields: [email], references: [email])
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  contactNumber String
+  email         String   @unique
+  user          User     @relation(fields: [email], references: [email])
+  userId        String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  approved      Boolean  @default(false)
+  companyName   String?
+  salaryRecords ChiefEngineerSalary[]
 
-  salaryRecords    ChiefEngineerSalary[]
+  @@map("ChiefEngineers")
 }
