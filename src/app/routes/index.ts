@@ -4,6 +4,7 @@ import { authRoutes } from '../modules/auth/auth.routes';
 import { adminRoutes } from '../modules/Admin/admin.routes';
 import { SiteRoutes } from '../modules/construction site/site.route';
 import { WorkAssignmentRoutes } from '../modules/workAssignment/workAssignment.routes';
+import { attendanceRoutes } from '../modules/attendance/attendance.route';
 
 
 
@@ -32,6 +33,10 @@ const moduleRoutes = [
     {
         path: '/work-assignment',
         route: WorkAssignmentRoutes
+    },
+    {
+        path: '/attendance',
+        route: attendanceRoutes
     }
    
 ];

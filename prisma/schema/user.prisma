@@ -16,8 +16,7 @@ model User {
   engineer        SITE_Engineer?
   worker          Worker?
 
-  attendance       Attendance[]
-   
+ 
   @@map("Users")
 }
 
@@ -52,6 +51,7 @@ model SITE_Engineer {
   workAssignments  WorkAssignment[]
   payments         WorkerPayment[]
   salaryRecords    SiteEngineerSalary[]
+  attendance       Attendance[]
   companyName      String?
 
   @@map("SiteEngineers")
@@ -80,6 +80,7 @@ model Worker {
 
   workAssignments  WorkAssignment[]
   payments         WorkerPayment[]
+  attendance       Attendance[] 
 
   @@map("Workers")
 }

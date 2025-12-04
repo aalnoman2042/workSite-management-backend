@@ -39,3 +39,8 @@ enum WorkerPosition {
   CARPENTER
   OTHER
 }
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
