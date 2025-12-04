@@ -120,6 +120,62 @@ const getWorkerAssignments = async (id: string) => {
     });
 };
 
+
+
+const softDeleteWorker = async (workerId: string) => {
+  const worker = await prisma.worker.update({
+    where: { id: workerId },
+    data: { isDeleted: true },
+  });
+  return worker;
+};
+
+const restoreWorker = async (workerId: string) => {
+  const worker = await prisma.worker.update({
+    where: { id: workerId },
+    data: { isDeleted: false },
+  });
+  return worker;
+};
+
+const updateWorkerProfile = async (workerId: string, data: any) => {
+  // Build data object dynamically to avoid overwriting undefined
+  const updateData: any = {};
+
+  const updatableFields = [
+    "name",
+    "profilePhoto",
+    "contactNumber",
+    "nidNumber",
+    "joiningDate",
+    "banned",
+    "approved",
+    "onleave",
+    "dailyRate",
+    "halfDayRate",
+    "companyName",
+    "position",
+  ];
+
+  for (const field of updatableFields) {
+    if (field in data) {
+      updateData[field] = data[field];
+    }
+    else {
+      return `Field ${field} not provided, skipping update for this field.`;
+    }
+  }
+
+  const updatedWorker = await prisma.worker.update({
+    where: { id: workerId },
+    data: updateData,
+  });
+
+  return updatedWorker;
+};
+
+
+
 export const workerService = {
     createWorker,
     getAllWorkers,
@@ -129,5 +185,8 @@ export const workerService = {
     getWorkerAttendance,
     getWorkerPayments,
     getWorkerAssignments,
+    softDeleteWorker,
+    restoreWorker,  
+    updateWorkerProfile,    
 };
-export { createWorker };
+

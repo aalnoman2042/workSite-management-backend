@@ -3,6 +3,7 @@ import { workerService } from "./worker.service";
 import catchAsync from "../../shared/catchAsync";
 import { workerFilterableFields } from "./worker.constant";
 import pick from "../../helper/pick";
+import sendResponse from "../../shared/sendResponse";
 
 
  const createWorker = catchAsync( async (req: Request, res: Response) => {
@@ -71,6 +72,38 @@ import pick from "../../helper/pick";
     res.json({ success: true, data: result });
   });
 
+
+const softDeleteWorkerController = catchAsync(async (req: Request, res: Response) => {
+  const worker = await workerService.softDeleteWorker(req.params.id);
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Worker soft-deleted successfully",
+    data: worker,
+  });
+});
+
+const restoreWorkerController = catchAsync(async (req: Request, res: Response) => {
+  const worker = await workerService.restoreWorker(req.params.id);
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Worker restored successfully",
+    data: worker,
+  });
+});
+
+const updateWorkerController = catchAsync(async (req: Request, res: Response) => {
+  const updatedWorker = await workerService.updateWorkerProfile(req.params.id, req.body);
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Worker profile updated successfully",
+    data: updatedWorker,
+  });
+});
+
+
   export const WorkerController = {
   createWorker,
   getAllWorkers,
@@ -81,4 +114,7 @@ import pick from "../../helper/pick";
     getWorkerAttendance,    
     getWorkerPayments,  
     getWorkerAssignments,
+    softDeleteWorkerController,
+    restoreWorkerController,
+    updateWorkerController
 };  

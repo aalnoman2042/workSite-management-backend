@@ -25,4 +25,11 @@ router.get("/:id/payments", WorkerController.getWorkerPayments);
 
 router.get("/:id/assignments", WorkerController.getWorkerAssignments);
 
+router.patch("/soft-delete/:id", WorkerController.softDeleteWorkerController);
+router.patch("/restore/:id", WorkerController.restoreWorkerController);
+
+
+router.patch("/update/:id", WorkerController.updateWorkerController);
+
+
 export const WorkerRoutes = router;
