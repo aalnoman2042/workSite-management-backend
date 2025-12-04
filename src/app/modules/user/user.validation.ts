@@ -7,7 +7,7 @@ export const UserValidation = {
     name: z.string(),
     profilePhoto: z.string().optional(),
     contactNumber: z.string(),
-    position: z.string(),
+    position: z.string().optional() ,
     nidNumber: z.string()
   }),
 

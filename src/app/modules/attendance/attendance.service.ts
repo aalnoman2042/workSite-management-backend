@@ -1,112 +1,185 @@
-// import prisma from "../../config/db.js";
-
-import { AttendanceStatus } from "@prisma/client";
+import { AttendanceStatus, Prisma } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
 import { IJwtPayload } from "../../types/common";
 
-/**
- * 1) GET workers + their attendance for a specific date
- */
-const getDayAttendance = async ({ site_id, date }: { site_id: string; date: string }) => {
-  if (!site_id || !date) throw new Error("site_id and date are required");
 
-  // normalize date
-  const ISODate = new Date(date);
-
-
-  // 1️⃣ Find all workers assigned to this site
-  const assignedWorkers = await prisma.workAssignment.findMany({
-    where: { siteId: site_id },
-    include: {
-      worker: true,    // Get worker details
-    }
-  });
-//  console.log(assignedWorkers, );
- 
-  if (assignedWorkers.length === 0) return [];
-
-  // extract only worker details
-  const workers = assignedWorkers.map(w => w.worker);
-
-  // 2️⃣ Find attendance for this site & date
-  const attendance = await prisma.attendance.findMany({
-    where: { siteId: site_id, date: ISODate }
-  });
-
-  console.log(attendance, "attendance records");
-
-  // 3️⃣ Merge worker + attendance
-  const result = workers.map(worker => {
-    const att = attendance.find(a => a.workerId === worker.id);
-
-    return {
-      workerId: worker.id,
-      workerName: worker.name,
-      email: worker.email,
-
-      status: att?.status ?? "none",
-      hoursWorked: att?.hoursWorked ?? 0,
-      isHalfDay: att?.isHalfDay ?? false,
-      attendanceId: att?.id ?? null,
-      date: ISODate
-    };
-  });
-
-  return result;
+/** Normalize Date → YYYY-MM-DD only */
+const normalizeDate = (date: string) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
 
+/* ========================================================
+   1) Mark Single Worker Attendance
+======================================================== */
+const markSingleAttendance = async (
+  { workerId, siteId, date, status }: { workerId: string; siteId: string; date: string; status: AttendanceStatus },
+  siteEngineer: IJwtPayload
+) => {
+  const ISODate = normalizeDate(date);
 
-
-/**
- * 2) Mark attendance for full day
- */
- const markDayAttendance = async ({ siteId, date, presentWorkers }: { siteId: string; date: string; presentWorkers: string[] }, siteEngineer: IJwtPayload
- ) => {
-  if (!siteId || !date) throw new Error("siteId, date required");
-
-  const ISODate = new Date(date);
-  const siteEngineerId = await prisma.sITE_Engineer.findUnique({
+  // Find engineer
+  const engineer = await prisma.sITE_Engineer.findUnique({
     where: { email: siteEngineer.email },
   });
-  // all workers
-  const workers = await prisma.worker.findMany({});
-  const workerIds = workers.map(w => w.id);
 
-  // Remove previous marking for this exact date + site
+  if (!engineer) throw new Error("Invalid site engineer");
+
+  // Remove previous attendance for this worker same date
   await prisma.attendance.deleteMany({
-    where: { siteId: siteId, date: ISODate }
+    where: { workerId, siteId, date: ISODate },
   });
 
-  // Present workers
-  const presentData = presentWorkers.map(workerId => ({
-    workerId ,
-    siteId,
-    siteEngineerId: siteEngineerId?.id as string,
-    date: ISODate,
-    status: AttendanceStatus.PRESENT
-  }));
-
-  // Absent workers = all_workers - present_workers
-  const absentWorkers = workerIds.filter(id => !presentWorkers.includes(id));
-
-  const absentData = absentWorkers.map(workerId => ({
-    workerId,
-    siteId,
-    siteEngineerId : siteEngineerId?.id as string,
-    date: ISODate,
-    status: AttendanceStatus.ABSENT
-  }));
-
-  // Insert new attendance rows
-  await prisma.attendance.createMany({
-    data: [...presentData, ...absentData]
+  // Create new attendance
+  const attendance = await prisma.attendance.create({
+    data: {
+      workerId,
+      siteId,
+      date: ISODate,
+      status,
+      siteEngineerId: engineer.id,
+    },
   });
 
-  return { totalPresent: presentData.length, totalAbsent: absentData.length };
+  return attendance;
 };
 
+
+/* ========================================================
+   2) TODAY’S ATTENDANCE (by Site)
+======================================================== */
+const getTodayAttendance = async (siteId: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const attendance = await prisma.attendance.findMany({
+    where: { siteId, date: today },
+    include: { worker: true },
+  });
+
+  return attendance;
+};
+
+
+/* ========================================================
+   3) SPECIFIC DAY ATTENDANCE (by Site)
+======================================================== */
+const getDayAttendance = async (siteId: string, date: string) => {
+  const ISODate = normalizeDate(date);
+
+  return prisma.attendance.findMany({
+    where: { siteId, date: ISODate },
+    include: { worker: true },
+  });
+};
+
+
+/* ========================================================
+   4) WEEKLY ATTENDANCE (Last 7 Days)
+======================================================== */
+const getWeeklyAttendance = async (workerId: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // normalize today
+  const lastWeek = new Date(today);
+  lastWeek.setDate(today.getDate() - 6); // last 7 days including today
+
+  // Fetch all attendance for last 7 days
+  const records = await prisma.attendance.findMany({
+    where: {
+      workerId,
+      date: { gte: lastWeek, lte: today },
+    },
+    orderBy: { date: "asc" },
+  });
+
+  // Count total present days
+  const totalPresent = records.filter(r => r.status === "PRESENT").length;
+
+  return {
+    totalPresent,
+    records,
+  };
+};
+
+
+
+/* ========================================================
+   5) MONTHLY ATTENDANCE
+======================================================== */
+const getMonthlyAttendance = async (workerId: string, month: number, year: number) => {
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0);
+
+  // Fetch all attendance for that month
+  const records = await prisma.attendance.findMany({
+    where: {
+      workerId,
+      date: { gte: startDate, lte: endDate },
+    },
+    orderBy: { date: "asc" },
+  });
+
+  // Count total present days
+  const totalPresent = records.filter(r => r.status === "PRESENT").length;
+
+  return {
+    totalPresent,
+    records,
+  };
+};
+
+
+/* ========================================================
+   6) PAGINATION + SORTING
+======================================================== */
+const getPaginatedAttendance = async ({
+  siteId,
+  date,
+  page = 1,
+  limit = 10,
+  sort = "asc",
+}: {
+  siteId: string;
+  date: string;
+  page: number;
+  limit: number;
+  sort: string;
+}) => {
+  const ISODate = normalizeDate(date);
+
+  const skip = (page - 1) * limit;
+
+  const attendance = await prisma.attendance.findMany({
+    where: { siteId, date: ISODate },
+    skip,
+    take: limit,
+    orderBy: { status: sort as "asc" | "desc" },
+    include: { worker: true },
+  });
+
+  const total = await prisma.attendance.count({
+    where: { siteId, date: ISODate },
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: attendance,
+  };
+};
+
+
 export const attendanceService = {
+  markSingleAttendance,
+  getTodayAttendance,
   getDayAttendance,
-  markDayAttendance
+  getWeeklyAttendance,
+  getMonthlyAttendance,
+  getPaginatedAttendance,
 };

@@ -7,7 +7,7 @@ import { create } from "domain";
   // WORKER CREATE
   // ============================
     const createWorker = async (payload: any) => {
-    const { email, password, name, profilePhoto, contactNumber, position, nidNumber } = payload;
+    const { email, password, name, profilePhoto, contactNumber,  nidNumber } = payload;
 
     const isExist = await prisma.user.findUnique({ where: { email } });
     if (isExist) throw new Error("User already exists");
