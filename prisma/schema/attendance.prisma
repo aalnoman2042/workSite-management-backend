@@ -18,6 +18,7 @@ model Attendance {
   
   hoursWorked Float?
   isHalfDay   Boolean           @default(false)
+  ispaid      Boolean           @default(false)
 
   verifiedBy  String?           // chief engineer ID (optional)
   verifiedAt  DateTime?

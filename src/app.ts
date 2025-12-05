@@ -7,8 +7,17 @@ import { uptime } from 'process';
 import { timeStamp } from 'console';
 import router from './app/routes';
 import cookieParser from 'cookie-parser';
+import { PaymentController } from './app/modules/payment/payment.controller';
 
 const app: Application = express();
+
+app.post(
+  "/payment/webhook",
+  express.raw({ type: "application/json" }), // important for signature verification
+  PaymentController.handleStripeWebhookEvent
+);
+
+
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true
@@ -18,6 +27,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookieParser())
+app.use("/api/v1", router)
 
 app.get('/', (req: Request, res: Response) => {
     res.send({
@@ -30,7 +41,5 @@ app.get('/', (req: Request, res: Response) => {
 
 
 app.use(globalErrorHandler);
-app.use(cookieParser())
-app.use("/api/v1", router)
 
 export default app;
