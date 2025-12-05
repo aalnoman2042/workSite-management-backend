@@ -63,7 +63,28 @@ import config from "../../../config";
       refreshToken,
     };
   }
+const getMe = async (session: any) => {
+    const accessToken = session.accessToken;
+    const decodedData = jwtHelper.verifyToken(accessToken, config.jwt_secret as Secret);
 
+    const userData = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: decodedData.email,
+        }
+    })
+
+    const { id, email, role,} = userData;
+
+    return {
+        id,
+        email,
+        role,
+      
+
+    }
+
+}
 
   export const authService = {
-    login}
+    login
+  ,getMe}

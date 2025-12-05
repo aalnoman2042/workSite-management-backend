@@ -4,6 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 import { workerFilterableFields } from "./worker.constant";
 import pick from "../../helper/pick";
 import sendResponse from "../../shared/sendResponse";
+import { IJwtPayload } from "../../types/common";
 
 
  const createWorker = catchAsync( async (req: Request, res: Response) => {
@@ -103,6 +104,31 @@ const updateWorkerController = catchAsync(async (req: Request, res: Response) =>
   });
 });
 
+const updateMyProfile = catchAsync(
+  async (req: Request & { user?: IJwtPayload }, res: Response) => {
+    console.log(req?.user, "from controller");
+    console.log("jkfjhd");
+    
+    
+    const workerEmail = req.user?.email;
+
+    if (!workerEmail) {
+      return res.status(401).json({ error: "Unauthorized: missing user email" });
+    }
+
+    const updatedWorker = await workerService.updateMyProfile(
+      workerEmail,
+      req.body
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedWorker,
+    });
+  }
+);
 
   export const WorkerController = {
   createWorker,
@@ -116,5 +142,6 @@ const updateWorkerController = catchAsync(async (req: Request, res: Response) =>
     getWorkerAssignments,
     softDeleteWorkerController,
     restoreWorkerController,
-    updateWorkerController
+    updateWorkerController,
+    updateMyProfile
 };  

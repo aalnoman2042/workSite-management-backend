@@ -8,6 +8,7 @@ import { WorkAssignmentRoutes } from '../modules/workAssignment/workAssignment.r
 import { WorkerRoutes } from '../modules/worker/worker.route';
 import { attendanceRouter } from '../modules/attendance/attendance.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
+import { aiRoutes } from '../modules/AI/ai.route';
 
 
 
@@ -49,6 +50,10 @@ const moduleRoutes = [
 {
     path: "/pay",
     route: paymentRoutes
+},
+{
+    path: "/ai",
+    route: aiRoutes
 }
    
 ];

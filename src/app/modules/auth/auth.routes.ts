@@ -15,4 +15,10 @@ router.post(
   authController.login
 );
 
+router.get(
+    "/me",
+    authController.getMe
+)
+
+
 export const authRoutes = router;

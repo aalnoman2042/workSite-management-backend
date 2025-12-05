@@ -6,3 +6,13 @@ type IGetAllWorkersOptions = {
   searchTerm?: string;
   [key: string]: any;
 };
+
+
+interface UpdateWorkerProfileInput {
+  name?: string;
+  profilePhoto?: string
+  // dailyRate?: number;
+  // optional if you want to allow email change
+  // add more fields as needed
+  contactNumber?: string
+}

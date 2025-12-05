@@ -1,3 +1,4 @@
+import { AttendanceStatus } from "@prisma/client";
 import { prisma } from "../shared/prisma";
 
 export const calculateWorkerDue = async (workerId: string, startDate: string, endDate: string) => {
@@ -17,7 +18,7 @@ export const calculateWorkerDue = async (workerId: string, startDate: string, en
         gte: new Date(startDate),
         lte: new Date(endDate),
       },
-      status: "PRESENT"
+      status: AttendanceStatus.PRESENT
     }
   });
 

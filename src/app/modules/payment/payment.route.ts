@@ -5,11 +5,13 @@ import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
-/**
- * @route POST /payment/create
- * @desc Create a worker payment and return Stripe checkout URL
- * @body { workerId, startDate, endDate, paidByEngineerId }
- */
+
+router.get(
+  "/all",
+  auth(UserRole.SITE_ENGINEER, UserRole.CHIEF_ENGINEER),
+  PaymentController.getAllWorkerPayments
+);
+
 router.post("/worker-pay",auth(UserRole.SITE_ENGINEER), PaymentController.createWorkerPayment);
 
 export const paymentRoutes = router;

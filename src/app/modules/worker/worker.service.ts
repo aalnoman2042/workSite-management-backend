@@ -139,9 +139,7 @@ const restoreWorker = async (workerId: string) => {
 };
 
 const updateWorkerProfile = async (workerId: string, data: any) => {
-  // Build data object dynamically to avoid overwriting undefined
-  const updateData: any = {};
-
+  // List of fields that can be updated
   const updatableFields = [
     "name",
     "profilePhoto",
@@ -157,15 +155,21 @@ const updateWorkerProfile = async (workerId: string, data: any) => {
     "position",
   ];
 
+  // Build the update object dynamically
+  const updateData: any = {};
   for (const field of updatableFields) {
-    if (field in data) {
+    if (data[field] !== undefined) {
       updateData[field] = data[field];
     }
-    else {
-      return `Field ${field} not provided, skipping update for this field.`;
-    }
+    // skip fields that are not provided
   }
 
+  // If no valid fields provided, return early
+  if (Object.keys(updateData).length === 0) {
+    throw new Error("No valid fields provided to update");
+  }
+
+  // Update worker in database
   const updatedWorker = await prisma.worker.update({
     where: { id: workerId },
     data: updateData,
@@ -174,6 +178,41 @@ const updateWorkerProfile = async (workerId: string, data: any) => {
   return updatedWorker;
 };
 
+
+const updateMyProfile = async (email: string, data: any) => {
+  console.log(email, "from service");
+  
+  // Only update provided fields
+  const updatableFields = [
+    "name",
+    "profilePhoto",
+    "contactNumber",
+    "nidNumber",
+    "joiningDate",
+    "banned",
+    "approved",
+    "onleave",
+    "dailyRate",
+    "halfDayRate",
+    "companyName",
+    "position",
+  ];
+
+  const updateData: any = {};
+  for (const field of updatableFields) {
+    if (field in data) {
+      updateData[field] = data[field];
+    }
+  }
+
+  // Update worker by email
+  const updatedWorker = await prisma.worker.update({
+    where: { email },
+    data: updateData,
+  });
+
+  return updatedWorker;
+};
 
 
 export const workerService = {
@@ -188,5 +227,6 @@ export const workerService = {
     softDeleteWorker,
     restoreWorker,  
     updateWorkerProfile,    
+    updateMyProfile
 };
 

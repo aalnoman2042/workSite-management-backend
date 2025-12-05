@@ -103,7 +103,32 @@ return {
 };
 
 
+const getAllWorkerPayments = async (status?: string) => {
+  const where: any = {};
+
+
+  if (status) {
+    where.status = status.toUpperCase(); // DUE | PENDING | PAID | FAILED
+  }
+
+  const payments = await prisma.workerPayment.findMany({
+    where,
+    include: {
+      worker: true,
+      paidBy: true, // assuming paidBy relation to SITE_Engineer
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return payments;
+};
+
+
+
 export const PaymentService = {
   handleStripeWebhookEvent,
-  createWorkerPayment
+  createWorkerPayment,
+  getAllWorkerPayments
 };

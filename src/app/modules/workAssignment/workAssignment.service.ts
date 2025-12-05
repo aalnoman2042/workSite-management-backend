@@ -62,6 +62,7 @@ const getAssignmentsByEngineer = async (user: IJwtPayload) => {
   const engineer = await prisma.sITE_Engineer.findUnique({
     where: { email: user.email },
   });
+  
   console.log(engineer, "engineer   ");
 
   if (!engineer) {
