@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
     "build": "tsc --noEmit --skipLibCheck",
-    "start": "node dist/server.js",
-    "postinstall": "npm install --include=dev prisma generate --schema=./prisma/schema"
+    "start": "node ./dist/server.js",
+    "postinstall": "npm install && npx prisma generate --schema=./prisma/schema && npm run build"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
