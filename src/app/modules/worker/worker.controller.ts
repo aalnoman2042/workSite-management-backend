@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { workerService } from "./worker.service";
 import catchAsync from "../../shared/catchAsync";
 import { workerFilterableFields } from "./worker.constant";
@@ -7,17 +7,17 @@ import sendResponse from "../../shared/sendResponse";
 import { IJwtPayload } from "../../types/common";
 
 
- const createWorker = catchAsync( async (req: Request, res: Response) => {
-    const result = await workerService.createWorker(req.body);
+const createWorker = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const result = await workerService.createWorker(req.body);
 
-    res.status(201).json({
-      success: true,
-      message: "Worker created successfully",
-      data: result
-    });
-  });   
+  res.status(201).json({
+    success: true,
+    message: "Worker created successfully",
+    data: result
+  });
+  });
 
-  const getAllWorkers = catchAsync( async (req: Request, res: Response) => {
+  const getAllWorkers = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
       const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
     const fillters = pick(req.query, workerFilterableFields)
 
@@ -31,13 +31,13 @@ import { IJwtPayload } from "../../types/common";
     });
     });
 
-  const getSingleWorker = catchAsync( async (req: Request, res: Response) => {
+  const getSingleWorker = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.getSingleWorker(req.params.id);
 
     res.json({ success: true, data: result });
   });
 
-  const updateWorker = catchAsync(async (req: Request, res: Response) => {
+  const updateWorker = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.updateWorker(req.params.id, req.body);
 
     sendResponse(res, {
@@ -48,7 +48,7 @@ import { IJwtPayload } from "../../types/common";
     });
   });
 
-  const deleteWorker = catchAsync( async (req: Request, res: Response) => {
+  const deleteWorker = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.deleteWorker(req.params.id);
 
     res.json({
@@ -58,26 +58,26 @@ import { IJwtPayload } from "../../types/common";
     });
   });
 
-  const getWorkerAttendance = catchAsync( async (req: Request, res: Response) => {
+  const getWorkerAttendance = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.getWorkerAttendance(req.params.id);
 
     res.json({ success: true, data: result });
   });
 
-  const getWorkerPayments = catchAsync( async (req: Request, res: Response) => {
+  const getWorkerPayments = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.getWorkerPayments(req.params.id);
 
     res.json({ success: true, data: result });
   });   
 
-  const getWorkerAssignments = catchAsync( async (req: Request, res: Response) => {
+  const getWorkerAssignments = catchAsync( async (req: Request, res: Response, next: NextFunction) => {
     const result = await workerService.getWorkerAssignments(req.params.id);
 
     res.json({ success: true, data: result });
   });
 
 
-const softDeleteWorkerController = catchAsync(async (req: Request, res: Response) => {
+const softDeleteWorkerController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const worker = await workerService.softDeleteWorker(req.params.id);
   return sendResponse(res, {
     statusCode: 200,
@@ -87,7 +87,7 @@ const softDeleteWorkerController = catchAsync(async (req: Request, res: Response
   });
 });
 
-const restoreWorkerController = catchAsync(async (req: Request, res: Response) => {
+const restoreWorkerController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const worker = await workerService.restoreWorker(req.params.id);
   return sendResponse(res, {
     statusCode: 200,
@@ -97,7 +97,7 @@ const restoreWorkerController = catchAsync(async (req: Request, res: Response) =
   });
 });
 
-const updateWorkerController = catchAsync(async (req: Request, res: Response) => {
+const updateWorkerController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const updatedWorker = await workerService.updateWorkerProfile(req.params.id, req.body);
   return sendResponse(res, {
     statusCode: 200,
@@ -108,7 +108,7 @@ const updateWorkerController = catchAsync(async (req: Request, res: Response) =>
 });
 
 const updateMyProfile = catchAsync(
-  async (req: Request & { user?: IJwtPayload }, res: Response) => {
+  async (req: Request & { user?: IJwtPayload }, res: Response, next: NextFunction) => {
     console.log(req?.user, "from controller");
     console.log("jkfjhd");
     
