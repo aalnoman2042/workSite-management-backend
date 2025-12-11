@@ -8,8 +8,8 @@ import ApiError from "../Error/apiError";
 const auth = (...roles: string[]) => {
     return async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
         try {
-            const token = req.cookies.accessToken;
-// console.log(...roles);
+            const token = req.cookies.accessToken || req.headers.authorization;
+
 
             if (!token) {
                 throw new ApiError(httpStatus.UNAUTHORIZED,"You are not authorized!")
@@ -20,7 +20,7 @@ const auth = (...roles: string[]) => {
             req.user = verifyUser;
 
             if (roles.length && !roles.includes(verifyUser.role)) {
-                throw new ApiError(httpStatus.UNAUTHORIZED,"You are not authorized!")
+                throw new ApiError(httpStatus.UNAUTHORIZED,"You are not authorized! for this role")
             }
 
             next();

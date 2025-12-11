@@ -23,7 +23,7 @@ import config from "../../../config";
     if (user.isBanned) throw new ApiError(403,"User is banned");
 
     // Check if approved
-    if (!user.approved) {throw new ApiError(403,"User not approved yet");}
+    // if (!user.approved) {throw new ApiError(403,"User not approved yet");}
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -73,12 +73,13 @@ const getMe = async (session: any) => {
         }
     })
 
-    const { id, email, role,} = userData;
+    const { id, email, role,profilePhoto } = userData;
 
     return {
         id,
         email,
         role,
+        profilePhoto
       
 
     }

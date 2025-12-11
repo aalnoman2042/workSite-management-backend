@@ -16,21 +16,30 @@ CREATE TYPE "PaymentStatus" AS ENUM ('DUE', 'PAID', 'PENDING', 'FAILED');
 -- CreateEnum
 CREATE TYPE "WorkerPosition" AS ENUM ('SENIOR_TECHNICIAN', 'JUNIOR_TECHNICIAN', 'SENIOR_HELPER', 'JUNIOR_HELPER', 'ELECTRICIAN', 'PLUMBER', 'CARPENTER', 'OTHER');
 
+-- CreateEnum
+CREATE TYPE "AttendanceStatus" AS ENUM ('PRESENT', 'ABSENT');
+
 -- CreateTable
-CREATE TABLE "Attendance" (
+CREATE TABLE "Attendances" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "workerId" TEXT NOT NULL,
+    "siteId" TEXT NOT NULL,
+    "siteEngineerId" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
+    "status" "AttendanceStatus" NOT NULL,
     "hoursWorked" DOUBLE PRECISION,
     "isHalfDay" BOOLEAN NOT NULL DEFAULT false,
+    "ispaid" BOOLEAN NOT NULL DEFAULT false,
+    "verifiedBy" TEXT,
+    "verifiedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Attendance_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Attendances_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "WorkerPayment" (
+CREATE TABLE "WorkerPayments" (
     "id" TEXT NOT NULL,
     "workerId" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
@@ -43,11 +52,11 @@ CREATE TABLE "WorkerPayment" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "WorkerPayment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "WorkerPayments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "SiteEngineerSalary" (
+CREATE TABLE "SiteEngineerSalaries" (
     "id" TEXT NOT NULL,
     "engineerId" TEXT NOT NULL,
     "salary" DOUBLE PRECISION NOT NULL,
@@ -56,11 +65,11 @@ CREATE TABLE "SiteEngineerSalary" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "SiteEngineerSalary_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "SiteEngineerSalaries_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ChiefEngineerSalary" (
+CREATE TABLE "ChiefEngineerSalaries" (
     "id" TEXT NOT NULL,
     "chiefEngineerId" TEXT NOT NULL,
     "salary" DOUBLE PRECISION NOT NULL,
@@ -69,25 +78,27 @@ CREATE TABLE "ChiefEngineerSalary" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ChiefEngineerSalary_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ChiefEngineerSalaries_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "Users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" "UserRole" NOT NULL DEFAULT 'WORKER',
     "isBanned" BOOLEAN NOT NULL DEFAULT false,
     "gender" "Gender",
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "profilePhoto" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Admin" (
+CREATE TABLE "Admins" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "profilePhoto" TEXT,
@@ -97,27 +108,30 @@ CREATE TABLE "Admin" (
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "companyName" TEXT,
 
-    CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Admins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "SITE_Engineer" (
+CREATE TABLE "SiteEngineers" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "profilePhoto" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
     "contactNumber" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "companyName" TEXT,
 
-    CONSTRAINT "SITE_Engineer_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "SiteEngineers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Worker" (
+CREATE TABLE "Workers" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -126,34 +140,39 @@ CREATE TABLE "Worker" (
     "contactNumber" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "nidNumber" TEXT NOT NULL,
-    "joiningDate" TIMESTAMP(3) NOT NULL,
+    "joiningDate" TIMESTAMP(3),
     "banned" BOOLEAN NOT NULL DEFAULT false,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
     "onleave" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "dailyRate" DOUBLE PRECISION,
     "halfDayRate" DOUBLE PRECISION,
+    "companyName" TEXT,
     "position" "WorkerPosition",
 
-    CONSTRAINT "Worker_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Workers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "CHIEF_ENGINEER" (
+CREATE TABLE "ChiefEngineers" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "profilePhoto" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "contactNumber" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "approved" BOOLEAN NOT NULL DEFAULT false,
+    "companyName" TEXT,
 
-    CONSTRAINT "CHIEF_ENGINEER_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ChiefEngineers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Site" (
+CREATE TABLE "Sites" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "location" TEXT,
@@ -165,11 +184,11 @@ CREATE TABLE "Site" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Site_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Sites_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "WorkAssignment" (
+CREATE TABLE "WorkAssignments" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -183,68 +202,77 @@ CREATE TABLE "WorkAssignment" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "WorkAssignment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "WorkAssignments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Admin_email_key" ON "Admin"("email");
+CREATE UNIQUE INDEX "Admins_email_key" ON "Admins"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Admin_userId_key" ON "Admin"("userId");
+CREATE UNIQUE INDEX "Admins_userId_key" ON "Admins"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SITE_Engineer_email_key" ON "SITE_Engineer"("email");
+CREATE UNIQUE INDEX "SiteEngineers_email_key" ON "SiteEngineers"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SITE_Engineer_userId_key" ON "SITE_Engineer"("userId");
+CREATE UNIQUE INDEX "SiteEngineers_userId_key" ON "SiteEngineers"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Worker_email_key" ON "Worker"("email");
+CREATE UNIQUE INDEX "Workers_email_key" ON "Workers"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Worker_userId_key" ON "Worker"("userId");
+CREATE UNIQUE INDEX "Workers_userId_key" ON "Workers"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Worker_nidNumber_key" ON "Worker"("nidNumber");
+CREATE UNIQUE INDEX "Workers_nidNumber_key" ON "Workers"("nidNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CHIEF_ENGINEER_email_key" ON "CHIEF_ENGINEER"("email");
+CREATE UNIQUE INDEX "ChiefEngineers_email_key" ON "ChiefEngineers"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChiefEngineers_userId_key" ON "ChiefEngineers"("userId");
 
 -- AddForeignKey
-ALTER TABLE "Attendance" ADD CONSTRAINT "Attendance_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Workers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkerPayment" ADD CONSTRAINT "WorkerPayment_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Worker"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkerPayment" ADD CONSTRAINT "WorkerPayment_paidByEngineerId_fkey" FOREIGN KEY ("paidByEngineerId") REFERENCES "SITE_Engineer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_siteEngineerId_fkey" FOREIGN KEY ("siteEngineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SiteEngineerSalary" ADD CONSTRAINT "SiteEngineerSalary_engineerId_fkey" FOREIGN KEY ("engineerId") REFERENCES "SITE_Engineer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WorkerPayments" ADD CONSTRAINT "WorkerPayments_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Workers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ChiefEngineerSalary" ADD CONSTRAINT "ChiefEngineerSalary_chiefEngineerId_fkey" FOREIGN KEY ("chiefEngineerId") REFERENCES "CHIEF_ENGINEER"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WorkerPayments" ADD CONSTRAINT "WorkerPayments_paidByEngineerId_fkey" FOREIGN KEY ("paidByEngineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Admin" ADD CONSTRAINT "Admin_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SiteEngineerSalaries" ADD CONSTRAINT "SiteEngineerSalaries_engineerId_fkey" FOREIGN KEY ("engineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SITE_Engineer" ADD CONSTRAINT "SITE_Engineer_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ChiefEngineerSalaries" ADD CONSTRAINT "ChiefEngineerSalaries_chiefEngineerId_fkey" FOREIGN KEY ("chiefEngineerId") REFERENCES "ChiefEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Worker" ADD CONSTRAINT "Worker_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Admins" ADD CONSTRAINT "Admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CHIEF_ENGINEER" ADD CONSTRAINT "CHIEF_ENGINEER_email_fkey" FOREIGN KEY ("email") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SiteEngineers" ADD CONSTRAINT "SiteEngineers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkAssignment" ADD CONSTRAINT "WorkAssignment_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Workers" ADD CONSTRAINT "Workers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkAssignment" ADD CONSTRAINT "WorkAssignment_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Worker"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ChiefEngineers" ADD CONSTRAINT "ChiefEngineers_email_fkey" FOREIGN KEY ("email") REFERENCES "Users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkAssignment" ADD CONSTRAINT "WorkAssignment_assignedByEngineerId_fkey" FOREIGN KEY ("assignedByEngineerId") REFERENCES "SITE_Engineer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Sites"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_workerId_fkey" FOREIGN KEY ("workerId") REFERENCES "Workers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkAssignments" ADD CONSTRAINT "WorkAssignments_assignedByEngineerId_fkey" FOREIGN KEY ("assignedByEngineerId") REFERENCES "SiteEngineers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

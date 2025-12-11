@@ -11,7 +11,7 @@ const createWorker = async (payload: any) => {
  const getAllWorkers = async (filters: any, options: any) => {
   // Pagination calculation
 //   console.log(filters);
-  console.log(options);
+  // console.log(options);
   
   
   const { page, limit, skip, sortBy, sortOrder } = paginationHelper.calculatePagination(options);
@@ -83,6 +83,8 @@ const getSingleWorker = async (id: string) => {
 };
 
 const updateWorker = async (id: string, payload: any) => {
+  // console.log(payload);
+  
     return prisma.worker.update({
         where: { id },
         data: payload,
@@ -90,9 +92,9 @@ const updateWorker = async (id: string, payload: any) => {
 };
 
 const deleteWorker = async (id: string) => {
-    return prisma.worker.update({
-        where: { id },
-        data: { isDeleted: true },
+    return prisma.worker.delete({
+        where: { id }
+        
     });
 };
 

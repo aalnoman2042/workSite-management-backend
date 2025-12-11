@@ -15,7 +15,7 @@ router.patch(
 auth(UserRole.WORKER),
   WorkerController.updateMyProfile
 );
-router.get("/", auth(UserRole.ADMIN), WorkerController.getAllWorkers);
+router.get("/", WorkerController.getAllWorkers);
 
 router.get("/:id", WorkerController.getSingleWorker);
 
@@ -29,7 +29,7 @@ router.get("/:id/payments", WorkerController.getWorkerPayments);
 
 router.get("/:id/assignments", WorkerController.getWorkerAssignments);
 
-router.patch("/soft-delete/:id",auth(UserRole.WORKER), WorkerController.softDeleteWorkerController);
+router.patch("/soft-delete/:id",auth(UserRole.ADMIN), WorkerController.softDeleteWorkerController);
 router.patch("/restore/:id",auth(UserRole.CHIEF_ENGINEER, UserRole.SITE_ENGINEER), WorkerController.restoreWorkerController);
 
 

@@ -1,6 +1,8 @@
 import express from "express";
 import { UserController } from "./user.controller";
 import { UserValidation } from "./user.validation";
+import auth from "../../middlewares/auth";
+import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
@@ -21,6 +23,7 @@ router.post(
     req.body = UserValidation.siteEngineerSchema.parse(req.body);
     next();
   },
+  // auth(UserRole.ADMIN),
   UserController.createSiteEngineer
 );
 

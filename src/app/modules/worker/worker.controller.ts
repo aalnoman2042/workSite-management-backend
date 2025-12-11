@@ -23,11 +23,13 @@ import { IJwtPayload } from "../../types/common";
 
     const result = await workerService.getAllWorkers(fillters ,options);
 
-    res.json({
+    sendResponse(res, {
+      statusCode: 200,
       success: true,
+      message: "Workers retrieved successfully",
       data: result,
     });
-  });
+    });
 
   const getSingleWorker = catchAsync( async (req: Request, res: Response) => {
     const result = await workerService.getSingleWorker(req.params.id);
@@ -35,13 +37,14 @@ import { IJwtPayload } from "../../types/common";
     res.json({ success: true, data: result });
   });
 
-  const updateWorker = catchAsync( async (req: Request, res: Response) => {
+  const updateWorker = catchAsync(async (req: Request, res: Response) => {
     const result = await workerService.updateWorker(req.params.id, req.body);
 
-    res.json({
+    sendResponse(res, {
+      statusCode: 200,
       success: true,
       message: "Worker updated",
-      data: result
+      data: result,
     });
   });
 

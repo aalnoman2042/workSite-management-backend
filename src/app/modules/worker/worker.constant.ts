@@ -1,2 +1,2 @@
-export const workerFilterableFields = ["email" , "searchTerm"]
+export const workerFilterableFields = ["email" , "searchTerm", "position"]
 export const workerSearchableFields = ["name", "email"]
