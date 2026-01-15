@@ -15,9 +15,11 @@ model WorkerPayment {
   
   status PaymentStatus @default(DUE) // DUE, PAID, PENDING
   
-  paidBy SITE_Engineer @relation(fields: [paidByEngineerId], references: [id])
-  paidByEngineerId String
+  paidBy SITE_Engineer? @relation(fields: [paidByEngineerId], references: [id])
+  paidByEngineerId String? // This makes the engineer id optional
   paymentDate  DateTime?
+
+  attendanceIds   String[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

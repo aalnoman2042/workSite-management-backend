@@ -19,7 +19,7 @@ router.get("/", WorkerController.getAllWorkers);
 
 router.get("/:id", WorkerController.getSingleWorker);
 
-router.patch("/:id", auth(UserRole.ADMIN), WorkerController.updateWorker);
+router.patch("/:id", auth(UserRole.ADMIN, UserRole.CHIEF_ENGINEER), WorkerController.updateWorker);
 
 router.delete("/:id", auth(UserRole.ADMIN), WorkerController.deleteWorker);
 

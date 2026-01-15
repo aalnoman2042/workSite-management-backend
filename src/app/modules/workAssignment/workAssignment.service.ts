@@ -17,15 +17,17 @@ const createAssignment = async (
   }
 ) => {
   const { title, description, siteId, workerId, dueDate, workdate } = payload;
-  const allWorkers = await prisma.worker.findMany();
-  console.log(allWorkers, "all workers");
+  // const allWorkers = await prisma.worker.findMany();
+ console.log(user);
+ 
 
   const siteEngineer = await prisma.sITE_Engineer.findUnique({
     where: { email: user.email },
   });
+ 
   //    console.log(siteEngineer, "service");
 
-  if (!siteEngineer) throw new ApiError(404, "User not found");
+  if (!siteEngineer  ) throw new ApiError(404, "User not found");
 
   const worker = await prisma.worker.findUnique({
     where: { id: workerId },

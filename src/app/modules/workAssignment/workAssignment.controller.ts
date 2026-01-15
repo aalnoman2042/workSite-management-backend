@@ -8,8 +8,10 @@ import { IJwtPayload } from "../../types/common";
 
 const createAssignment = catchAsync(async (req: Request & { user?: JwtPayload }, res: Response, next: NextFunction) => {
     console.log(req.user);
+    console.log("hitted");
+    
   const assignment = await WorkAssignmentService.createAssignment( req.user as JwtPayload,req.body);
-  
+
   
   sendResponse(res, {
     statusCode: 201,

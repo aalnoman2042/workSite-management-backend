@@ -37,49 +37,57 @@ const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) 
 
 const createWorkerPayment = catchAsync(
   async (req: Request & { user?: IJwtPayload }, res: Response) => {
-    const { workerId, startDate, endDate } = req.body;
 
-    // 🔥 1. Validate required fields
-    if (!workerId || !startDate || !endDate) {
-      return res.status(400).json({ error: "Missing workerId, startDate or endDate" });
+    // 🔥 1. paymentId from body
+    const { paymentId } = req.body;
+
+    if (!paymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "paymentId is required",
+      });
     }
 
-    // 🔥 2. Logged-in user extracted from JWT
+    // 🔥 2. Logged-in user (JWT)
     const email = req.user?.email;
     if (!email) {
-      return res.status(400).json({ error: "Unauthorized or missing user info" });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
-    // 🔥 3. Find engineer who is paying
+    // 🔥 3. Find engineer (payer)
     const paidByEngineer = await prisma.sITE_Engineer.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (!paidByEngineer) {
-      return res.status(404).json({ error: "Engineer not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Engineer not found",
+      });
     }
 
-    const paidByEngineerId = paidByEngineer.id;
-
-    // 🔥 4. Call PaymentService
-    const { checkoutUrl, totalAmountDue, totalDays } =
-      await PaymentService.createWorkerPayment({
-        workerId,
-        startDate,
-        endDate,
-        paidByEngineerId,
+    // 🔥 4. Create Stripe checkout for EXISTING payment
+    const { checkoutUrl, totalAmountDue } =
+      await PaymentService.createWorkerPaymentCheckout({
+        paymentId,
+        paidByEngineerId: paidByEngineer.id,
       });
 
-    // 🔥 5. Send Response
+    // 🔥 5. Response
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: `Worker payment session created. Total due: ${totalAmountDue} for ${totalDays} days.`,
-      data: { checkoutUrl, totalAmountDue, totalDays },
+      message: "Worker payment checkout session created successfully",
+      data: {
+        checkoutUrl,
+        totalAmountDue,
+      },
     });
   }
 );
-
 
 const getAllWorkerPayments = catchAsync(
   async (req: Request & { user?: IJwtPayload }, res: Response) => {

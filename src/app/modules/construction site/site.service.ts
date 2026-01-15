@@ -14,11 +14,21 @@ const createSite = async (payload: any) => {
 const getAllSites = async () => {
   return await prisma.site.findMany({
     include: {
-      assignments: true,
+      assignments: {
+        include: {
+          worker: true,       // এখানে worker object include করছো
+        },
+      },
+      attendance: {
+        include: {
+          worker: true,       // attendance এর worker object include
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 };
+
 
 const getSingleSite = async (id: string) => {
   const site = await prisma.site.findUnique({
