@@ -3,7 +3,6 @@ import ApiError from "../../Error/apiError";
 import { prisma } from "../../shared/prisma";
 import { extractJsonFromMessage } from "../../middlewares/extractJSONfromMessage";
 import { openai } from "../../helper/open-router";
-import { SiteStatus } from "@prisma/client";
 
 
 export const getAISuggestions = async (payload: { query: string }) => {
@@ -11,20 +10,24 @@ export const getAISuggestions = async (payload: { query: string }) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "query is required");
   }
 
-  // Fetch workers + sites + skills etc.
   const workers = await prisma.worker.findMany({
     where: { isDeleted: false },
-    include: {
-    //   skills: true,
-    //   site: true,
-    },
   });
 
-const sites = await prisma.site.findMany({
-  where: {
-    status: { in: [SiteStatus.ACTIVE, SiteStatus.UNDER_MAINTENANCE , SiteStatus.INACTIVE] },
-  },
-});
+  const siteEngineers = await prisma.sITE_Engineer.findMany({
+    where: { isDeleted: false },
+  });
+
+  const chiefEngineers = await prisma.cHIEF_ENGINEER.findMany({
+    where: { isDeleted: false },
+  });
+
+  const admins = await prisma.admin.findMany({
+    where: { isDeleted: false },
+  });
+
+  const sites = await prisma.site.findMany();
+
   const attendance = await prisma.attendance.findMany({
     include: {
       worker: true,
@@ -32,39 +35,47 @@ const sites = await prisma.site.findMany({
     },
   });
 
-  // AI prompt
   const prompt = `
 You are an AI Assistant for a WorkSite Management System.
 
 Your job:
-- Understand the user's query about workers, sites, attendance, or skills.
-- Match the query with the provided worker & site data.
+- Understand the user's query about workers, engineers, admins, sites, or attendance.
+- Match the query with the provided database records.
 - Respond ONLY based on the actual database information.
-- If no match found → return { "noMatch": true }
-- If relevant → return workers or sites list.
-- Use STRICT matching (do NOT guess or hallucinate).
+- If no match found, return { "noMatch": true }.
+- If matches found, return one of: { "workers": [...] }, { "siteEngineers": [...] }, { "chiefEngineers": [...] }, { "admins": [...] }, { "sites": [...] }, or a combination of these keys.
+- Use STRICT matching. Do NOT guess or hallucinate.
 
-Important:
-1. Use worker.skills.name, worker.role, worker.site.name to match.
-2. If query is about a skill (e.g. "plumber"), show worker who has that skill.
-3. If query is about a site, show workers assigned to that site.
-4. Always return pure JSON response (no explanation text).
+Matching rules:
+1. Match by name, email, id, nidNumber, contactNumber, position, companyName, or any field present on the records.
+2. If the query is about a worker by name or id, return the matching worker(s).
+3. If the query is about an engineer (site engineer or chief engineer), search both lists and return matches.
+4. If the query is about a site, return that site (and optionally workers connected via attendance).
+5. Always return pure JSON. No explanation text. No markdown.
 
 Here is database data:
 
 WORKERS:
 ${JSON.stringify(workers, null, 2)}
 
+SITE ENGINEERS:
+${JSON.stringify(siteEngineers, null, 2)}
+
+CHIEF ENGINEERS:
+${JSON.stringify(chiefEngineers, null, 2)}
+
+ADMINS:
+${JSON.stringify(admins, null, 2)}
+
 SITES:
 ${JSON.stringify(sites, null, 2)}
+
 ATTENDANCE:
 ${JSON.stringify(attendance, null, 2)}
 
 USER QUERY:
 ${payload.query}
 `;
-
-  console.log("\nAI analyzing your query...\n");
 
   const completion = await openai.chat.completions.create({
     model: "z-ai/glm-4.5-air:free",
@@ -86,5 +97,3 @@ ${payload.query}
 
   return result;
 };
-
-

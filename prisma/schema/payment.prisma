@@ -19,7 +19,7 @@ model WorkerPayment {
   paidByEngineerId String? // This makes the engineer id optional
   paymentDate  DateTime?
 
-  attendanceIds   String[] 
+  attendanceIds   String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
