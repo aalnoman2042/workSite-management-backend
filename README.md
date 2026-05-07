@@ -1,119 +1,139 @@
-🚧 WorkSite Manager – Backend
+# WorkSite Manager – Backend
 
-A complete backend system for managing construction sites, workers, attendance, payments, and multi-role authentication. Built with Node.js, Express.js, Prisma/Mongoose, JWT, and deployed on Render/Railway.
+Backend for a construction WorkSite Management platform. It handles multi-role
+users, workers, sites, attendance, payments, work assignments, and an AI
+assistant that can answer natural-language questions about the database.
 
-This backend powers the full WorkSite Manager platform, enabling Admin, Chief Engineer, and Site Engineer roles to operate efficiently.
+Built with **Node.js, Express 5, TypeScript, Prisma, PostgreSQL**, and deployed
+on **Vercel**.
 
-🔗 Live API URL
+## Current State
 
-Backend Live URL: Add your deployed link here
-Example: https://worksite-backend.onrender.com
+Actively developed. The core flows below are implemented and live in the
+deployed build:
 
-👤 Admin Credentials (Required for Evaluation)
+- Multi-role authentication (Admin / Chief Engineer / Site Engineer / Worker)
+- Worker, site, and work-assignment CRUD
+- Attendance recording per site visit
+- Stripe-based worker payments with attendance linkage
+- AI assistant endpoint that searches workers, engineers, admins, and sites
+- Vercel auto-deploy from `main`
 
-⚠️ Mandatory — Without these, evaluation will give ZERO marks.
+## Features
 
-Email: admin@example.com
-Password: Admin@123
+### Authentication & Authorization
+- JWT-based login with cookie + bearer support
+- Role-based route guards
+- bcrypt password hashing
+- Zod request validation
 
+### Users
+- Admin, Chief Engineer, Site Engineer, and Worker profiles as separate models
+- Soft-delete (`isDeleted`) across roles
 
-(These credentials are created automatically through the seed script.)
+### Worker Management
+- Create / update / delete workers
+- Track worker info (NID, contact, position, skills, assigned site)
 
-📌 Features
-🔐 Authentication & Authorization
+### Site Management
+- Create and manage construction sites
+- Site status: `ACTIVE`, `UNDER_MAINTENANCE`, `INACTIVE`
 
-JWT-based login system
+### Work Assignments
+- Assign workers and engineers to specific sites and tasks
 
-Role-based access (Admin / Chief Engineer / Site Engineer)
+### Attendance
+- Site Engineers mark daily worker attendance during site visits
+- Attendance records linked to worker, site, and date
+- Chief Engineer / Admin can view all attendance
 
-Secure password hashing (bcrypt)
+### Payments
+- Stripe integration for worker payments
+- `WorkerPayment` records link to the attendance days they cover
+- `attendanceIds` defaults to `[]` so payments without linked days don’t break
 
-👷 Worker Management
+### AI Assistant
+- `POST /ai` accepts a natural-language `query`
+- Pulls workers, site engineers, chief engineers, admins, sites, and attendance
+- Uses an LLM (via OpenRouter) to return strict JSON matches
+- Falls back to `{ "noMatch": true }` when nothing fits
 
-Add, update, delete workers
+### Error Handling
+- Centralized `ApiError` + global error middleware
+- Validation errors mapped to a frontend-friendly shape
+- No silent failures — every route surfaces a structured response
 
-Assign workers to sites
+## Tech Stack
 
-Bulk upload support (CSV import)
+| Category    | Technology                             |
+|-------------|----------------------------------------|
+| Runtime     | Node.js + TypeScript                   |
+| Framework   | Express 5                              |
+| Database    | PostgreSQL                             |
+| ORM         | Prisma 6                               |
+| Auth        | JWT, bcrypt, cookie-parser             |
+| Validation  | Zod                                    |
+| Payment     | Stripe                                 |
+| AI          | OpenAI SDK via OpenRouter              |
+| Deployment  | Vercel                                 |
 
-📍 Site Management
+## Project Structure
 
-Create and manage sites
-
-Track site status and worker distribution
-
-📝 Attendance System
-
-Site Engineer can mark worker presence on site visit
-
-Daily attendance record stored with date & status
-
-Chief Engineer/Admin can view all attendance
-
-💰 Payment Module
-
-Stripe / SSLCommerz payment session creation
-
-Webhook integration
-
-Payment history logging
-
-🛠 Error Handling (Mandatory Requirement)
-
-Full centralized error middleware
-
-Validation error mapping
-
-Frontend-friendly responses
-
-No crashes or silent failures
-
-📊 Filtering & Search
-
-Query filters for workers, attendance, sites
-
-Search by name, email, site name, etc.
-
-🧱 Tech Stack
-Category	Technology
-Backend	Node.js, Express.js
-Database	PostgreSQL / MongoDB
-ORM / ODM	Prisma / Mongoose
-Auth	JWT
-Payment	Stripe / SSLCommerz
-Deployment	Render / Railway
-Other	bcrypt, express-validator, cors
-📂 Project Structure
-worksite-backend/
-│
+```
+worksite-manager-backend/
+├── prisma/
+│   └── schema/              # multi-file Prisma schema + migrations
 ├── src/
-│   ├── app.js
-│   ├── server.js
-│   ├── config/
-│   ├── middlewares/
-│   │   ├── auth.js
-│   │   ├── error.middleware.js
-│   ├── modules/
-│   │   ├── auth/
-│   │   ├── user/
-│   │   ├── worker/
-│   │   ├── site/
-│   │   ├── attendance/
-│   │   ├── payment/
-│   ├── utils/
-│
-├── prisma/ (if using Prisma)
-│   ├── schema.prisma
-│   ├── seed.js
-│
+│   ├── app/
+│   │   ├── Error/           # ApiError class
+│   │   ├── helper/          # OpenRouter client, etc.
+│   │   ├── middlewares/     # auth, error handler, JSON extractor
+│   │   ├── modules/
+│   │   │   ├── AI/
+│   │   │   ├── Admin/
+│   │   │   ├── attendance/
+│   │   │   ├── auth/
+│   │   │   ├── construction site/
+│   │   │   ├── payment/
+│   │   │   ├── user/
+│   │   │   ├── workAssignment/
+│   │   │   └── worker/
+│   │   └── shared/          # prisma client, utils
+│   ├── app.ts
+│   └── server.ts
 ├── package.json
-├── README.md
-└── .env.example
+└── tsconfig.json
+```
 
-🚀 Getting Started
-1️⃣ Clone the repository
-git clone https://github.com/YOUR_USERNAME/worksite-backend.git
-cd worksite-backend
+## Getting Started
 
-2️⃣ Install dependencies
+```bash
+git clone https://github.com/aalnoman2042/workSite-management-backend.git
+cd workSite-manager-backend
 npm install
+npx prisma generate --schema=./prisma/schema
+npx prisma migrate deploy --schema=./prisma/schema
+npm run dev
+```
+
+Required env vars (in `.env`):
+
+```
+DATABASE_URL=
+JWT_SECRET=
+JWT_EXPIRES_IN=
+STRIPE_SECRET_KEY=
+OPENROUTER_API_KEY=
+```
+
+## Scripts
+
+| Script          | Purpose                              |
+|-----------------|--------------------------------------|
+| `npm run dev`   | Start dev server (ts-node-dev)       |
+| `npm run build` | Type-check the project               |
+| `npm start`     | Run compiled output from `dist/`     |
+
+## Deployment
+
+Pushes to `main` trigger an automatic Vercel deployment.

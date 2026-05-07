@@ -1,7 +1,6 @@
 import httpStatus from "http-status";
 import ApiError from "../../Error/apiError";
 import { prisma } from "../../shared/prisma";
-import { extractJsonFromMessage } from "../../middlewares/extractJSONfromMessage";
 import { openai } from "../../helper/open-router";
 
 
@@ -38,22 +37,14 @@ export const getAISuggestions = async (payload: { query: string }) => {
   const prompt = `
 You are an AI Assistant for a WorkSite Management System.
 
-Your job:
-- Understand the user's query about workers, engineers, admins, sites, or attendance.
-- Match the query with the provided database records.
-- Respond ONLY based on the actual database information.
-- If no match found, return { "noMatch": true }.
-- If matches found, return one of: { "workers": [...] }, { "siteEngineers": [...] }, { "chiefEngineers": [...] }, { "admins": [...] }, { "sites": [...] }, or a combination of these keys.
-- Use STRICT matching. Do NOT guess or hallucinate.
+Answer the user's question conversationally based on the database data below.
+- When listing workers, engineers, admins, or sites, be specific: include name, role/position, contact, status, etc.
+- Use bullet points for lists.
+- Use STRICT matching. Do NOT guess or hallucinate. Only use what is in the data.
+- If nothing matches the question, say so politely.
+- Reply in plain text. Do NOT wrap your answer in JSON or markdown code blocks.
 
-Matching rules:
-1. Match by name, email, id, nidNumber, contactNumber, position, companyName, or any field present on the records.
-2. If the query is about a worker by name or id, return the matching worker(s).
-3. If the query is about an engineer (site engineer or chief engineer), search both lists and return matches.
-4. If the query is about a site, return that site (and optionally workers connected via attendance).
-5. Always return pure JSON. No explanation text. No markdown.
-
-Here is database data:
+Here is the database data:
 
 WORKERS:
 ${JSON.stringify(workers, null, 2)}
@@ -91,9 +82,5 @@ ${payload.query}
     ],
   });
 
-  const result = await extractJsonFromMessage(
-    completion.choices[0].message
-  );
-
-  return result;
+  return completion.choices[0].message.content || "";
 };
