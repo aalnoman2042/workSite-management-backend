@@ -1,5 +1,7 @@
+import { Request } from "express";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
+import { IJwtPayload } from "../../types/common";
 import { SiteService } from "./site.service";
 
 const createSite = catchAsync(async (req, res) => {
@@ -57,9 +59,21 @@ const deleteSite = catchAsync(async (req, res) => {
   });
 });
 
+const getMySites = catchAsync(async (req: Request & { user?: IJwtPayload }, res) => {
+  const result = await SiteService.getMySites(req.user as IJwtPayload);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Your sites fetched",
+    data: result,
+  });
+});
+
 export const SiteController = {
   createSite,
   getAllSites,
+  getMySites,
   getSingleSite,
   updateSite,
   deleteSite,
