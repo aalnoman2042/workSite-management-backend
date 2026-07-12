@@ -9,6 +9,7 @@ import { WorkerRoutes } from '../modules/worker/worker.route';
 import { attendanceRouter } from '../modules/attendance/attendance.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { aiRoutes } from '../modules/AI/ai.route';
+import { statsRoutes } from '../modules/stats/stats.route';
 
 
 
@@ -54,8 +55,12 @@ const moduleRoutes = [
 {
     path: "/ai",
     route: aiRoutes
+},
+{
+    path: "/stats",
+    route: statsRoutes
 }
-   
+
 ];
 
 moduleRoutes.forEach(route => router.use(route.path, route.route))
