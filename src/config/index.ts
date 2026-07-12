@@ -14,5 +14,9 @@ export default {
     StripeSecretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecretKey: process.env.WEBHOOK_SECRET,
 
-    openRouterApiKey: process.env.OPENROUTER_API_KEY
+    openRouterApiKey: process.env.OPENROUTER_API_KEY,
+
+    // Comma-separated OpenRouter model ids, tried in order. Lets a delisted or rate-limited
+    // model be swapped from the Vercel dashboard without a redeploy.
+    aiModels: process.env.AI_MODELS
 }

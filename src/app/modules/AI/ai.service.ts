@@ -1,8 +1,28 @@
 import httpStatus from "http-status";
+import config from "../../../config";
 import ApiError from "../../Error/apiError";
 import { prisma } from "../../shared/prisma";
 import { openai } from "../../helper/open-router";
 
+// Tried in order. The assistant previously pinned a single free model (z-ai/glm-4.5-air:free)
+// and went down silently when OpenRouter delisted it — free models also get rate-limited (429)
+// regularly, so we fall through to the next one on any failure.
+// Override without a redeploy by setting AI_MODELS to a comma-separated list.
+const DEFAULT_AI_MODELS = [
+  "openai/gpt-oss-20b:free", // fast, OpenAI open-weight, 131k context
+  "openai/gpt-oss-120b:free", // same family, stronger but slower
+  "nvidia/nemotron-3-super-120b-a12b:free", // different provider, 1M context
+  "openrouter/free", // router over whatever free models exist — last resort
+];
+
+const getAIModels = (): string[] => {
+  const configured = config.aiModels
+    ?.split(",")
+    .map((model) => model.trim())
+    .filter(Boolean);
+
+  return configured?.length ? configured : DEFAULT_AI_MODELS;
+};
 
 export const getAISuggestions = async (payload: { query: string }) => {
   if (!payload || !payload.query) {
@@ -68,19 +88,44 @@ USER QUERY:
 ${payload.query}
 `;
 
-  const completion = await openai.chat.completions.create({
-    model: "z-ai/glm-4.5-air:free",
-    messages: [
-      {
-        role: "system",
-        content: "You are a helpful WorkSite AI assistant.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
+  const models = getAIModels();
+  let lastError: unknown;
 
-  return completion.choices[0].message.content || "";
+  for (const model of models) {
+    try {
+      const completion = await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful WorkSite AI assistant.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      });
+
+      const answer = completion.choices[0]?.message?.content;
+
+      // A delisted model can still answer with an empty body rather than erroring,
+      // which would surface as a blank reply — treat that as a failure and move on.
+      if (answer) {
+        return answer;
+      }
+
+      lastError = new Error(`${model} returned an empty response`);
+    } catch (error) {
+      lastError = error;
+      console.error(`AI model ${model} failed, trying the next one:`, (error as Error).message);
+    }
+  }
+
+  console.error("All AI models failed. Last error:", lastError);
+
+  throw new ApiError(
+    httpStatus.SERVICE_UNAVAILABLE,
+    "The AI assistant is temporarily unavailable. Please try again shortly."
+  );
 };
