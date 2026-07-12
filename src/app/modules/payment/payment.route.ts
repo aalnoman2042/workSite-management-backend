@@ -18,4 +18,11 @@ router.get("/my-payments", auth(UserRole.WORKER), PaymentController.getMyWorkerP
 
 router.post("/worker-pay",auth(UserRole.SITE_ENGINEER), PaymentController.createWorkerPayment);
 
+// Put a PENDING payment back to DUE after the payer cancels at Stripe, so it can be retried.
+router.patch(
+  "/release/:id",
+  auth(UserRole.SITE_ENGINEER),
+  PaymentController.releaseWorkerPayment
+);
+
 export const paymentRoutes = router;

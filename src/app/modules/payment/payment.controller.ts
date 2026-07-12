@@ -123,9 +123,25 @@ const getMyWorkerPayments = catchAsync(
   }
 );
 
+const releaseWorkerPayment = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await PaymentService.releaseWorkerPayment(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: result.released
+      ? "Payment released and is due again"
+      : "Payment was not pending, nothing to release",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   handleStripeWebhookEvent,
   createWorkerPayment,
+  releaseWorkerPayment,
   getAllWorkerPayments,
   getMyWorkerPayments
 };

@@ -18,8 +18,9 @@ app.post(
 );
 
 
+// The deployed frontend was never in this list, so any browser call from it was blocked.
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', config.clientUrl],
     credentials: true
 }));
 

@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import httpStatus from "http-status";
+import config from "../../../config";
 import { prisma } from "../../shared/prisma";
 import { PaymentStatus } from "@prisma/client";
 import { stripe } from "../../helper/stripe";
@@ -43,10 +44,55 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
   break;
 }
 
+    // A checkout the payer walked away from. Without this the payment stays PENDING
+    // forever: it is no longer DUE, so it is never listed, never regenerated and can
+    // never be retried. Put it back to DUE so it can be paid again.
+    case "checkout.session.expired": {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      const workerPaymentId = session.metadata?.workerPaymentId;
+      if (!workerPaymentId) return;
+
+      await prisma.workerPayment.updateMany({
+        where: { id: workerPaymentId, status: PaymentStatus.PENDING },
+        data: {
+          status: PaymentStatus.DUE,
+          paidByEngineerId: null,
+        },
+      });
+
+      break;
+    }
 
     default:
       console.log(`Unhandled event: ${event.type}`);
   }
+};
+
+// Called when the payer explicitly cancels at Stripe and lands back on the payments page.
+// Scoped to PENDING via updateMany so it can never downgrade a payment that has already
+// been marked PAID by the webhook (a cancel and a completion can race).
+const releaseWorkerPayment = async (paymentId: string) => {
+  const payment = await prisma.workerPayment.findUnique({
+    where: { id: paymentId },
+  });
+
+  if (!payment) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Payment not found");
+  }
+
+  const result = await prisma.workerPayment.updateMany({
+    where: { id: paymentId, status: PaymentStatus.PENDING },
+    data: {
+      status: PaymentStatus.DUE,
+      paidByEngineerId: null,
+    },
+  });
+
+  return {
+    released: result.count > 0,
+    status: result.count > 0 ? PaymentStatus.DUE : payment.status,
+  };
 };
 
 
@@ -91,8 +137,10 @@ const createWorkerPaymentCheckout = async ({
       workerPaymentId: payment.id,
       payerId: paidByEngineerId,
     },
-    success_url: "https://abdullah-al-noman.vercel.app/",
-    cancel_url: "https://gari-lagbe-frontend.vercel.app/",
+    // These used to point at unrelated sites, so the payer was dropped on a stranger's
+    // page after checking out. Send them back to the payments page they came from.
+    success_url: `${config.clientUrl}/site-engineer/dashboard/payments?payment=success`,
+    cancel_url: `${config.clientUrl}/site-engineer/dashboard/payments?payment=cancelled&paymentId=${payment.id}`,
   });
 
   // ✅ Update existing payment
@@ -211,6 +259,7 @@ const getMyWorkerPayments = async (user: IJwtPayload, status?: string) => {
 export const PaymentService = {
   handleStripeWebhookEvent,
   createWorkerPaymentCheckout,
+  releaseWorkerPayment,
   getMyWorkerPayments,
   getAllWorkerPayments
 };
