@@ -22,7 +22,15 @@ router.get("/site/:siteId/today", attendanceController.getTodayAttendance);
 // 5) Get specific day attendance of a site
 router.get("/site/:siteId/day", attendanceController.getDayAttendance);
 
-// 6) Get attendance with pagination + sorting
-router.get("/all-attendance", attendanceController.getAllAttendance);
+// 6) Get attendance with pagination + sorting (supervisors only — this returns every
+//    worker's records, so it must not be reachable by a WORKER token)
+router.get(
+  "/all-attendance",
+  auth(UserRole.ADMIN, UserRole.CHIEF_ENGINEER, UserRole.SITE_ENGINEER),
+  attendanceController.getAllAttendance
+);
+
+// 7) A worker's own attendance, scoped from the token
+router.get("/my-attendance", auth(UserRole.WORKER), attendanceController.getMyAttendance);
 
 export const attendanceRouter = router;

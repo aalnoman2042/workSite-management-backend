@@ -135,6 +135,29 @@ const getDayAttendance = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+/**
+ * 7) The logged-in worker's own attendance
+ */
+const getMyAttendance = catchAsync(async (req: Request & { user?: IJwtPayload }, res: Response) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
+  // A ?workerId= in the query survives this pick, but the service overwrites it with the
+  // id behind the token, so it cannot be used to read someone else's attendance.
+  const filters = pick(req.query, attendanceFilterableFields);
+
+  const result = await attendanceService.getMyAttendance(
+    req.user as IJwtPayload,
+    filters,
+    options
+  );
+
+  return sendResponse(res, {
+    statusCode: 200,
+    message: "Your attendance records fetched successfully",
+    success: true,
+    data: result,
+  });
+});
+
 export const attendanceController = {
   markSingleAttendance,
   markBulkAttendance,
@@ -143,4 +166,5 @@ export const attendanceController = {
   getTodayAttendance,
   getDayAttendance,
   getAllAttendance,
+  getMyAttendance,
 };

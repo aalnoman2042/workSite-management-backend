@@ -1,8 +1,11 @@
 import Stripe from "stripe";
+import httpStatus from "http-status";
 import { prisma } from "../../shared/prisma";
 import { PaymentStatus } from "@prisma/client";
 import { stripe } from "../../helper/stripe";
 import { calculateWorkerDue } from "../../helper/calculateWorkerDue";
+import ApiError from "../../Error/apiError";
+import { IJwtPayload } from "../../types/common";
 
 const handleStripeWebhookEvent = async (event: Stripe.Event) => {
   switch (event.type) {
@@ -182,8 +185,32 @@ const getAllWorkerPayments = async (status?: string) => {
   
 
 
+// A worker's own payment records, resolved from the token. Unlike getAllWorkerPayments this
+// is a pure read — it does not generate DUE rows, so a worker loading their page never
+// mutates the payment ledger.
+const getMyWorkerPayments = async (user: IJwtPayload, status?: string) => {
+  const worker = await prisma.worker.findUnique({
+    where: { email: user.email },
+    select: { id: true },
+  });
+
+  if (!worker) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Worker not found or invalid token");
+  }
+
+  return prisma.workerPayment.findMany({
+    where: {
+      workerId: worker.id,
+      ...(status ? { status: status.toUpperCase() as PaymentStatus } : {}),
+    },
+    include: { paidBy: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 export const PaymentService = {
   handleStripeWebhookEvent,
   createWorkerPaymentCheckout,
+  getMyWorkerPayments,
   getAllWorkerPayments
 };

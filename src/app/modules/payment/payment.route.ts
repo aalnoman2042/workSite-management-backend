@@ -8,9 +8,12 @@ const router = express.Router();
 
 router.get(
   "/all",
-  auth(UserRole.SITE_ENGINEER, UserRole.CHIEF_ENGINEER),
+  auth(UserRole.ADMIN, UserRole.SITE_ENGINEER, UserRole.CHIEF_ENGINEER),
   PaymentController.getAllWorkerPayments
 );
+
+// A worker's own payment records, scoped from the token.
+router.get("/my-payments", auth(UserRole.WORKER), PaymentController.getMyWorkerPayments);
 
 
 router.post("/worker-pay",auth(UserRole.SITE_ENGINEER), PaymentController.createWorkerPayment);

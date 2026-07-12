@@ -1,4 +1,6 @@
 import { AttendanceStatus, Prisma } from "@prisma/client";
+import httpStatus from "http-status";
+import ApiError from "../../Error/apiError";
 import { prisma } from "../../shared/prisma";
 import { IJwtPayload } from "../../types/common";
 import { BulkAttendanceInput, DayAttendanceInput } from "./attendance.types";
@@ -188,7 +190,7 @@ const getAllAttendance = async (filters: any, options: any) => {
     paginationHelper.calculatePagination(options);
 
 
-  const { searchTerm, siteName, date, status, ...otherFilters } = filters;
+  const { searchTerm, siteName, date, status, ispaid, ...otherFilters } = filters;
 
   const statusNNormalized = status ? status.toUpperCase() as AttendanceStatus : undefined;
 
@@ -228,6 +230,14 @@ const getAllAttendance = async (filters: any, options: any) => {
   if (status) {
     andConditions.push({
       status: statusNNormalized,
+    });
+  }
+
+  // 💰 Filter by paid / unpaid. It arrives from the query string as "true"/"false",
+  // and Prisma needs a real boolean here or it throws a validation error.
+  if (ispaid !== undefined && ispaid !== "") {
+    andConditions.push({
+      ispaid: ispaid === true || ispaid === "true",
     });
   }
 
@@ -271,12 +281,32 @@ const getAllAttendance = async (filters: any, options: any) => {
 };
 
 
+/* ========================================================
+   7) A WORKER'S OWN ATTENDANCE
+======================================================== */
+// The worker is resolved from the token, and workerId is forced onto the filters after
+// the caller's own filters are spread in — so a worker cannot read anyone else's records
+// by passing ?workerId=<someone-else>.
+const getMyAttendance = async (user: IJwtPayload, filters: any, options: any) => {
+  const worker = await prisma.worker.findUnique({
+    where: { email: user.email },
+    select: { id: true },
+  });
+
+  if (!worker) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Worker not found or invalid token");
+  }
+
+  return getAllAttendance({ ...filters, workerId: worker.id }, options);
+};
+
 export const attendanceService = {
   markSingleAttendance,
-  markBulkAttendance, 
+  markBulkAttendance,
   getTodayAttendance,
   getDayAttendance,
   getWeeklyAttendance,
   getMonthlyAttendance,
 getAllAttendance,
+  getMyAttendance,
 };

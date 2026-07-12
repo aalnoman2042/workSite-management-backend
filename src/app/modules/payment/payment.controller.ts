@@ -105,8 +105,27 @@ const getAllWorkerPayments = catchAsync(
   }
 );
 
+const getMyWorkerPayments = catchAsync(
+  async (req: Request & { user?: IJwtPayload }, res: Response) => {
+    const { status } = req.query;
+
+    const payments = await PaymentService.getMyWorkerPayments(
+      req.user as IJwtPayload,
+      status as string
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Your payment records fetched successfully",
+      data: payments,
+    });
+  }
+);
+
 export const PaymentController = {
   handleStripeWebhookEvent,
   createWorkerPayment,
-  getAllWorkerPayments
+  getAllWorkerPayments,
+  getMyWorkerPayments
 };
